@@ -1,9 +1,13 @@
 import pygame
 import math
+import copy
 import numpy as np
+from Board import *
+import random
+import threading
 
 screensize = (600, 600)
-filelocation = "C:/Users/Christiano/Desktop/Shallow Blue"
+filelocation = "C:\Users\Chris\Documents\Shallow Blue"
 pygame.init()
 screen = pygame.display.set_mode(screensize)
 done = False
@@ -16,7 +20,7 @@ selected_pos = [8, 8]
 IsPieceSelected = False
 
 SelectedPiece = []
-MoveCount = 0
+Turn = 0
 
 
 
@@ -25,9 +29,26 @@ class Board():
         self.whitePieces = []
         self.blackPieces = []
         self.score = 0
+        self.a = a
+        self.b = b
+        self.MoveCount = 0
 
     def GetAllPieces(self):
         return self.whitePieces + self.blackPieces
+
+    def Length(self):
+        return len(self.GetAllPieces())
+
+    def Represent(self):
+        rep = np.zeros((8,8))
+        pieces = self.GetAllPieces()
+        for p in pieces:
+            if p.color == "W":
+                rep[p.position[1]][p.position[0]] = p.value
+            else:
+                rep[p.position[1]][p.position[0]] = -p.value
+        print (rep)
+        print("-----")
 
     def Clear(self):
         self.whitePieces = []
@@ -36,20 +57,22 @@ class Board():
         self.score = 0
 
     def GetScore(self):
-        Score = 0
-        for p in self.whitePieces:
-            Score += p.value
-        for p in self.blackPieces:
-            Score -= p.value
-        return Score
+        rep = np.zeros((8, 8))
+        pieces = self.GetAllPieces()
+        for p in pieces:
+            if p.color == "W":
+                rep[p.position[1]][p.position[0]] = p.value
+            else:
+                rep[p.position[1]][p.position[0]] = -p.value
+        self.score = rep.sum()
+        return rep.sum()
 
     def CopyState(self,board):
-        state = board.GetAllPieces()
-        self.clear()
+        self.Clear()
         for p in board.whitePieces:
-            self.whitePieces.append(p)
+            self.whitePieces.append(copy.deepcopy(p))
         for p in board.blackPieces:
-            self.blackPieces.append(p)
+            self.blackPieces.append(copy.deepcopy(p))
 
     def IsOccupied(self,pos):
         for p in self.GetAllPieces():
@@ -91,11 +114,11 @@ class Piece(Board):
         self.movecount = 0
         self.movelist = []
         self.board = board
-    def CanTake(self, (x, y)):
+    def CanTake(self, pos):
         for p in self.board.GetAllPieces():
-            if tuple(p.position) == tuple((x, y)) and p.color != self.color:
+            if tuple(p.position) == tuple(pos) and p.color != self.color:
                 if self.moves(self.board) != None:
-                    if tuple((x, y)) in self.moves(self.board):
+                    if tuple(pos) in self.moves(self.board):
                         return True
 
     def MoveTo(self,board, (x, y)):
@@ -104,18 +127,23 @@ class Piece(Board):
             if (x, y) in self.moves(board):
                 if not self.board.IsOccupied((x, y)):
                     self.position = (x, y)
-                    MoveCount += 1
+                    board.MoveCount += 1
                     self.movecount += 1
-                    print(MoveCount)
-            else:
-                pass
-
+                else:
+                    self.Take((x,y))
     def Delete(self):
         try:
             self.board.whitePieces.remove(self)
+        except:
+            print("Couldnt remove white piece")
+        try:
             self.board.blackPieces.remove(self)
         except:
-            pass
+            print("Couldnt remove black piece")
+        try:
+            self.board.allPieces.remove(self)
+        except:
+            print("couldnt remove piece")
 
     def Take(self, (x, y)):
         global MoveCount
@@ -124,11 +152,15 @@ class Piece(Board):
                 if self.CanTake((x, y)):
                     self.board.Occupier((x, y)).Delete()
                     self.position = ((x, y))
+                    self.board.MoveCount += 1
+                    self.movecount += 1
 
             else:
                 if self.CanTake((x, y)):
                     self.board.Occupier((x, y)).Delete()
                     self.position = ((x, y))
+                    self.board.MoveCount += 1
+                    self.movecount += 1
 
 
 
@@ -138,10 +170,11 @@ class King(Piece):
         Piece.__init__(self, pos, color, board)
         self.type = "ki"
         self.imagefile = "/" + str((self.color) + keydict[self.type] + ".png")
-        self.value = 10000
+        self.value = 1000
         self.coord = [self.position[0] * (screensize[0] / 8.0), self.position[1] * (screensize[1] / 8.0)]
+        self.board = board
         if self.color == "B" :
-            self.board.whitePieces.append(self)
+            self.board.blackPieces.append(self)
         if self.color == "W":
             self.board.whitePieces.append(self)
         pygame.image.load(filelocation + self.imagefile)
@@ -164,6 +197,9 @@ class King(Piece):
             if self.board.IsOccupied(mv):
                 if self.board.Occupier(mv).color == self.color:
                     delmoves.append(mv)
+        for mv in legalmoves:
+            if not InBoard(mv):
+                delmoves.append(mv)
         legalmoves = set(legalmoves) - set(delmoves)
         return legalmoves
 
@@ -176,8 +212,9 @@ class Queen(Piece):
         self.imagefile = "/" + str((self.color) + keydict[self.type] + ".png")
         self.value = 9
         self.coord = [self.position[0] * (screensize[0] / 8.0), self.position[1] * (screensize[1] / 8.0)]
+        self.board = board
         if self.color == "B":
-            self.board.whitePieces.append(self)
+            self.board.blackPieces.append(self)
         if self.color == "W":
             self.board.whitePieces.append(self)
         pygame.image.load(filelocation + self.imagefile)
@@ -238,6 +275,9 @@ class Queen(Piece):
             if board.IsOccupied(mv):
                 if board.Occupier(mv).color == self.color:
                     delmoves.append(mv)
+        for mv in legalmoves:
+            if not InBoard(mv):
+                delmoves.append(mv)
         legalmoves = set(legalmoves) - set(delmoves)
         self.movelist = legalmoves
         return legalmoves
@@ -251,10 +291,11 @@ class Rook(Piece):
         self.imagefile = "/" + str((self.color) + keydict[self.type] + ".png")
         self.value = 5
         self.coord = [self.position[0] * (screensize[0] / 8.0), self.position[1] * (screensize[1] / 8.0)]
+        self.board = board
         if self.color == "B":
-            board.whitePieces.append(self)
+            self.board.blackPieces.append(self)
         if self.color == "W":
-            board.whitePieces.append(self)
+            self.board.whitePieces.append(self)
         pygame.image.load(filelocation + self.imagefile)
 
     def moves(self,board):
@@ -289,6 +330,9 @@ class Rook(Piece):
             if board.IsOccupied(mv):
                 if board.Occupier(mv).color == self.color:
                     delmoves.append(mv)
+        for mv in legalmoves:
+            if not InBoard(mv):
+                delmoves.append(mv)
         legalmoves = set(legalmoves) - set(delmoves)
         self.movelist = legalmoves
         return legalmoves
@@ -302,10 +346,11 @@ class Bishop(Piece):
         self.imagefile = "/" + str((self.color) + keydict[self.type] + ".png")
         self.value = 3
         self.coord = [self.position[0] * (screensize[0] / 8.0), self.position[1] * (screensize[1] / 8.0)]
+        self.board = board
         if self.color == "B":
-            board.whitePieces.append(self)
+            self.board.blackPieces.append(self)
         if self.color == "W":
-            board.whitePieces.append(self)
+            self.board.whitePieces.append(self)
         pygame.image.load(filelocation + self.imagefile)
 
     def moves(self,board):
@@ -341,6 +386,9 @@ class Bishop(Piece):
             if board.IsOccupied((mv)):
                 if board.Occupier(mv).color == self.color:
                     delmoves.append(mv)
+        for mv in legalmoves:
+            if not InBoard(mv):
+                delmoves.append(mv)
 
         legalmoves = set(legalmoves) - set(delmoves)
         self.movelist = legalmoves
@@ -355,10 +403,11 @@ class Knight(Piece):
         self.imagefile = "/" + str((self.color) + keydict[self.type] + ".png")
         self.value = 3
         self.coord = [self.position[0] * (screensize[0] / 8.0), self.position[1] * (screensize[1] / 8.0)]
+        self.board = board
         if self.color == "B":
-            board.whitePieces.append(self)
+            self.board.blackPieces.append(self)
         if self.color == "W":
-            board.whitePieces.append(self)
+            self.board.whitePieces.append(self)
         pygame.image.load(filelocation + self.imagefile)
 
     def moves(self,board):
@@ -373,6 +422,9 @@ class Knight(Piece):
             if board.IsOccupied((mv)):
                 if board.Occupier(mv).color == self.color:
                     delmoves1.append(mv)
+        for mv in legalmoves:
+            if not InBoard(mv):
+                delmoves1.append(mv)
         moves = (set(legalmoves) - set(delmoves1))
         self.movelist = moves
         return moves
@@ -386,10 +438,11 @@ class Pawn(Piece):
         self.imagefile = "/" + str((self.color) + keydict[self.type] + ".png")
         self.value = 1
         self.coord = [self.position[0] * (screensize[0] / 8.0), self.position[1] * (screensize[1] / 8.0)]
+        self.board = board
         if self.color == "B":
-            board.whitePieces.append(self)
+            self.board.blackPieces.append(self)
         if self.color == "W":
-            board.whitePieces.append(self)
+            self.board.whitePieces.append(self)
         pygame.image.load(filelocation + self.imagefile)
 
     def moves(self,board):
@@ -412,17 +465,26 @@ class Pawn(Piece):
         for mv in legalmoves:
             if mv != None:
                 if mv[0] != self.position[0]:
-                    if board.IsOccupied(mv) == False:
+                    if self.board.IsOccupied(mv) == False:
+                        delmoves.append(mv)
+                    elif self.board.Occupier(mv).color == self.color:
                         delmoves.append(mv)
                 else:
-                    if board.IsOccupied(mv) == True:
+                    if self.board.IsOccupied(mv) == True:
                         delmoves.append(mv)
+        for mv in legalmoves:
+            if not InBoard(mv):
+                delmoves.append(mv)
 
         moves = (set(legalmoves) - set(delmoves))
-        print(mv)
         self.movelist = moves
         return moves
-
+def InBoard(t1):
+    if t1[0] >= 0 and t1[0] <8:
+        if t1[1] >= 0 and t1[1] < 8:
+            return True
+    else:
+        return False
 
 def Initialize():
     global MainBoard
@@ -449,7 +511,105 @@ def Initialize():
         Pawn((a, 6), "W", MainBoard)
         Update()
 
+NodeList = []
 
+
+#class MiniMaxNode():
+    #    def __init__(self, maxdepth, state, root= None, currentdepth = 1):
+#        global NodeList
+#        NodeList.append(self)
+#        self.state = state
+#        self.depth = currentdepth
+#        self.value = 0
+#        self.root = root
+#        self.maxdepth = maxdepth
+#        self.currentdepth = currentdepth
+#
+#        if (self.depth <= self.maxdepth):
+    #            if self.root != None:
+    #                if self.depth % 2 == 1:
+    #                    for p in root.state.whitePieces:
+    #
+#                        def GenerateNodes():
+    #                            if p.moves(root.state) != set([]):
+        #                                try:
+#                                    for mv in p.moves(root.state):
+    #                                        nextboard = Board(p.position, mv)
+#                                        nextboard.CopyState(root.state)
+#                                        nextboard.Occupier(p.position).MoveTo(nextboard, mv)
+#                                        k = self.depth + 1
+#                                        newnode = MiniMaxNode(self.maxdepth,nextboard,self, k)
+#                                except:
+#                                    pass
+#
+#                        t = threading.Thread(target=GenerateNodes())
+#                        t.start()
+#                if self.depth % 2 == 0:
+    #                    for p in root.state.blackPieces:
+    #
+#                        def GenerateNodes():
+    #                            if p.moves(root.state) != set([]):
+        #                                try:
+#                                    for mv in np.nditer(np.asanyarray(list(p.moves(root.state))),["refs_ok","zerosize_ok","common_dtype"]):
+    #                                        nextboard = Board(p.position, mv)
+#                                        nextboard.CopyState(root.state)
+#                                        nextboard.Occupier(p.position).MoveTo(nextboard, mv)
+#                                        k = self.depth + 1
+#                                        newnode = MiniMaxNode(self.maxdepth,nextboard, self, k)
+#                                except:
+#                                    pass
+#                            else:
+#                                pass
+#
+#                        t = threading.Thread(target=GenerateNodes())
+#                        t.start()
+#            else:
+#                if self.depth % 2 == 1:
+    #                    for p in MainBoard.blackPieces:
+    #
+#                        def GenerateNodes():
+    #                            if len(p.moves(MainBoard))!= 0:
+        #                                for mv in p.moves(MainBoard):
+        #                                    nextboard = Board(p.position, mv)
+    #                                    nextboard.CopyState(MainBoard)
+    #                                    nextboard.Occupier(p.position).MoveTo(nextboard, mv)
+    #                                    newnode = MiniMaxNode(self.maxdepth, nextboard, self, (self.depth + 1))
+    #
+    #                        t = threading.Thread(target=GenerateNodes())
+    #                        t.start()
+    #    def __str__(self):
+#        return(self.state.Represent())
+
+#def Calculate(depth = 1):
+#    global NodeList
+#    NodeList = []
+#    Node = MiniMaxNode(3, MainBoard)
+#
+#    #print(len(NodeList))
+#
+#    for a in range(10):
+#           NodeList[-a].state.Represent()
+#
+#'#        #print(NodeList[a].depth)
+#'#        #print("---------")
+#'#
+def Calculate(depth=1):
+
+    for i in range(depth):
+        nextBoards = []
+        for p in MainBoard.blackPieces:
+            for mv in p.moves(MainBoard):
+                fakeboard = Board(p.position, mv)
+                fakeboard.CopyState(MainBoard)
+                fakeboard.Occupier(p.position).MoveTo(fakeboard,mv)
+                nextBoards.append([fakeboard,p.position,mv])
+        for k in nextBoards:#
+            k[0].GetScore()
+
+        tmp = random.shuffle(nextBoards)
+        sortedBoards = sorted(nextBoards, key=lambda x: x[0].score, reverse=False)
+        MainBoard.Occupier(sortedBoards[0][1]).MoveTo(MainBoard,sortedBoards[0][2])
+        Update()
 Initialize()
 
 while not done:
@@ -458,6 +618,7 @@ while not done:
     takes = [0]
     taken = [0]
     ANYSELECTED = []
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             done = True
@@ -467,7 +628,10 @@ while not done:
                             int(math.floor(event.pos[1] * 8.0 / screensize[1]))]
             for p in MainBoard.GetAllPieces():
                 if p.selected is True:
+                    for mv in p.moves(MainBoard):
+                        print(mv)
                     ANYSELECTED.append(True)
+
                 else:
 #
                     ANYSELECTED.append(False)
@@ -483,25 +647,25 @@ while not done:
                                 ANYSELECTED = []
                                 p.selected = False
                             else:
+                                print("Score is " + str(MainBoard.GetScore()))
                                 p.MoveTo(MainBoard,selected_pos)
                                 p.selected = False
                                 ANYSELECTED = []
                 else:
                     if tuple(p.position) == tuple(selected_pos):
-                        if MoveCount % 2 == 1 and p.color == "B":
-                            p.selected = True
-                        if MoveCount % 2 == 0 and p.color == "W":
+                        if MainBoard.MoveCount % 2 == 0 and p.color == "W":
                             p.selected = True
 
-            #try:
-            if (takes[0] != 0) and (taken[0] != 0):
-                print(taken)
-                print(takes)
+            try:
+
                 takes[0].Take(taken[0])
-                print("Hey")
-                MoveCount += 1
-            #except:
-            #    pass
+
+
+            except:
+                pass
             #
             Update()
+    if MainBoard.MoveCount % 2 == 1:
+        Calculate()
+
     pygame.display.flip()
