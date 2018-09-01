@@ -1,2 +1,3 @@
 # PyThon-ChessMachine
-An implementation of the minimax algorithm in a chess game 
+A work in progress implementation of the minimax algorithm in a PyGame based chess board.
+Currently the algorithm works with a depth of 1, I'm in the process of implementing multithreading to speed up the board evaluation and minimax algorithm so the machine can play better chess...
