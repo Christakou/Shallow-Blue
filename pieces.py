@@ -22,7 +22,7 @@ class Piece():
     def MoveTo(self,board, coords):
         if self.moves(self.board) != None:
             if tuple(coords) in self.moves(board):
-                if not self.board.IsOccupied(coords):
+                if not self.board.is_occupied(coords):
                     self.position = coords
                     board.move_count += 1
                     self.move_count += 1
@@ -43,17 +43,17 @@ class Piece():
             print("couldnt remove piece")
 
     def Take(self, coords):
-        if self.board.IsOccupied(coords):
+        if self.board.is_occupied(coords):
             if self.type == "p":
                 if self.CanTake(coords):
-                    self.board.Occupier(coords).Delete()
+                    self.board.occupier(coords).Delete()
                     self.position = (coords)
                     self.board.move_count += 1
                     self.move_count += 1
 
             else:
                 if self.CanTake(coords):
-                    self.board.Occupier(coords).Delete()
+                    self.board.occupier(coords).Delete()
                     self.position = coords
                     self.board.move_count += 1
                     self.move_count += 1
@@ -88,8 +88,8 @@ class King(Piece):
         legalmoves.append((x, y - 1))
         legalmoves.append((x, y))
         for mv in legalmoves:
-            if self.board.IsOccupied(mv):
-                if self.board.Occupier(mv).color == self.color:
+            if self.board.is_occupied(mv):
+                if self.board.occupier(mv).color == self.color:
                     delmoves.append(mv)
         for mv in legalmoves:
             if not in_board(mv):
@@ -117,55 +117,55 @@ class Queen(Piece):
         delmoves = []
         for i in range(1, 8):
             legalmoves.append((x + i, y + i))
-            if board.IsOccupied((x + i, y + i)):
+            if board.is_occupied((x + i, y + i)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x + i, y - i))
-            if board.IsOccupied((x + i, y - i)):
+            if board.is_occupied((x + i, y - i)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x - i, y - i))
-            if board.IsOccupied((x - i, y - i)):
+            if board.is_occupied((x - i, y - i)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x - i, y + i))
-            if board.IsOccupied((x - i, y + i)):
+            if board.is_occupied((x - i, y + i)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x + i, y))
-            if board.IsOccupied((x + i, y)):
+            if board.is_occupied((x + i, y)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x - i, y))
-            if board.IsOccupied((x - i, y)):
+            if board.is_occupied((x - i, y)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x, y + i))
-            if board.IsOccupied((x, y + i)):
+            if board.is_occupied((x, y + i)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x, y - i))
-            if board.IsOccupied((x, y - i)):
+            if board.is_occupied((x, y - i)):
                 break
             else:
                 pass
         for mv in legalmoves:
-            if board.IsOccupied(mv):
-                if board.Occupier(mv).color == self.color:
+            if board.is_occupied(mv):
+                if board.occupier(mv).color == self.color:
                     delmoves.append(mv)
         for mv in legalmoves:
             if not in_board(mv):
@@ -194,31 +194,31 @@ class Rook(Piece):
         delmoves = []
         for i in range(1, 8):
             legalmoves.append((x + i, y))
-            if board.IsOccupied((x + i, y)):
+            if board.is_occupied((x + i, y)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x - i, y))
-            if board.IsOccupied((x - i, y)):
+            if board.is_occupied((x - i, y)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x, y + i))
-            if board.IsOccupied((x, y + i)):
+            if board.is_occupied((x, y + i)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x, y - i))
-            if board.IsOccupied((x, y - i)):
+            if board.is_occupied((x, y - i)):
                 break
             else:
                 pass
         for mv in legalmoves:
-            if board.IsOccupied(mv):
-                if board.Occupier(mv).color == self.color:
+            if board.is_occupied(mv):
+                if board.occupier(mv).color == self.color:
                     delmoves.append(mv)
         for mv in legalmoves:
             if not in_board(mv):
@@ -247,32 +247,32 @@ class Bishop(Piece):
         delmoves = []
         for i in range(1, 8):
             legalmoves.append((x + i, y + i))
-            if board.IsOccupied((x + i, y + i)):
+            if board.is_occupied((x + i, y + i)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x + i, y - i))
-            if board.IsOccupied((x + i, y - i)):
+            if board.is_occupied((x + i, y - i)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x - i, y - i))
-            if board.IsOccupied((x - i, y - i)):
+            if board.is_occupied((x - i, y - i)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x - i, y + i))
-            if board.IsOccupied((x - i, y + i)):
+            if board.is_occupied((x - i, y + i)):
                 break
             else:
                 pass
 
         for mv in legalmoves:
-            if board.IsOccupied((mv)):
-                if board.Occupier(mv).color == self.color:
+            if board.is_occupied((mv)):
+                if board.occupier(mv).color == self.color:
                     delmoves.append(mv)
         for mv in legalmoves:
             if not in_board(mv):
@@ -305,8 +305,8 @@ class Knight(Piece):
             if (mv[0] > 7) or (mv[0] < 0) or (mv[1] > 7) or (mv[1] < 0):
                 delmoves1.append(mv)
         for mv in legalmoves:
-            if board.IsOccupied((mv)):
-                if board.Occupier(mv).color == self.color:
+            if board.is_occupied((mv)):
+                if board.occupier(mv).color == self.color:
                     delmoves1.append(mv)
         for mv in legalmoves:
             if not in_board(mv):
@@ -334,13 +334,13 @@ class Pawn(Piece):
         delmoves = []
         x, y = self.position[0], self.position[1]
         if self.color == "B":
-            if self.move_count == 0 and (board.IsOccupied((x, y + 1)) == False):
+            if self.move_count == 0 and (board.is_occupied((x, y + 1)) == False):
                 legalmoves.append((x, y + 2))
             legalmoves.append((x, y + 1))
             legalmoves.append((x + 1, y + 1))
             legalmoves.append((x - 1, y + 1))
         if self.color == "W":
-            if self.move_count == 0 and (board.IsOccupied((x, y - 1)) == False):
+            if self.move_count == 0 and (board.is_occupied((x, y - 1)) == False):
                 legalmoves.append((x, y - 2))
             legalmoves.append((x, y - 1))
             legalmoves.append((x + 1, y - 1))
@@ -349,12 +349,12 @@ class Pawn(Piece):
         for mv in legalmoves:
             if mv != None:
                 if mv[0] != self.position[0]:
-                    if self.board.IsOccupied(mv) == False:
+                    if self.board.is_occupied(mv) == False:
                         delmoves.append(mv)
-                    elif self.board.Occupier(mv).color == self.color:
+                    elif self.board.occupier(mv).color == self.color:
                         delmoves.append(mv)
                 else:
-                    if self.board.IsOccupied(mv) == True:
+                    if self.board.is_occupied(mv) == True:
                         delmoves.append(mv)
         for mv in legalmoves:
             if not in_board(mv):

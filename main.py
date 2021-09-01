@@ -6,6 +6,7 @@ import random
 import threading
 from pieces import King,Queen,Rook,Bishop,Knight,Pawn
 from utils import KEYDICT, SCREENSIZE, coordinates_to_board_position
+import time
 
 pygame.init()
 screen = pygame.display.set_mode(SCREENSIZE)
@@ -35,10 +36,8 @@ class Board():
     def all_pieces(self):
         return self.whitePieces + self.blackPieces
 
-    def Length(self):
-        return len(self.all_pieces())
 
-    def Represent(self):
+    def ___str__(self):
         rep = np.zeros((8,8))
         pieces = self.all_pieces()
         for p in pieces:
@@ -49,13 +48,13 @@ class Board():
         print (rep)
         print("-----")
 
-    def Clear(self):
+    def clear(self):
         self.whitePieces = []
         self.blackPieces = []
         self.allPieces = []
         self.score = 0
 
-    def GetScore(self):
+    def get_score(self):
         rep = np.zeros((8, 8))
         pieces = self.all_pieces()
         for p in pieces:
@@ -66,14 +65,14 @@ class Board():
         self.score = rep.sum()
         return rep.sum()
 
-    def CopyState(self,board):
-        self.Clear()
+    def copy_state(self,board):
+        self.clear()
         for p in board.whitePieces:
             self.whitePieces.append(copy.deepcopy(p))
         for p in board.blackPieces:
             self.blackPieces.append(copy.deepcopy(p))
 
-    def IsOccupied(self,pos):
+    def is_occupied(self,pos):
         for p in self.all_pieces():
             if tuple(p.position) == tuple(pos):
                 return True
@@ -81,7 +80,7 @@ class Board():
             return False
 
 
-    def Occupier(self,pos):
+    def occupier(self,pos):
         for p in self.all_pieces():
             if tuple(p.position) == tuple(pos):
                 return p
@@ -159,8 +158,8 @@ NodeList = []
         #                                try:
 #                                    for mv in p.moves(root.state):
     #                                        nextboard = Board(p.position, mv)
-#                                        nextboard.CopyState(root.state)
-#                                        nextboard.Occupier(p.position).MoveTo(nextboard, mv)
+#                                        nextboard.copy_state(root.state)
+#                                        nextboard.occupier(p.position).MoveTo(nextboard, mv)
 #                                        k = self.depth + 1
 #                                        newnode = MiniMaxNode(self.maxdepth,nextboard,self, k)
 #                                except:
@@ -176,8 +175,8 @@ NodeList = []
         #                                try:
 #                                    for mv in np.nditer(np.asanyarray(list(p.moves(root.state))),["refs_ok","zerosize_ok","common_dtype"]):
     #                                        nextboard = Board(p.position, mv)
-#                                        nextboard.CopyState(root.state)
-#                                        nextboard.Occupier(p.position).MoveTo(nextboard, mv)
+#                                        nextboard.copy_state(root.state)
+#                                        nextboard.occupier(p.position).MoveTo(nextboard, mv)
 #                                        k = self.depth + 1
 #                                        newnode = MiniMaxNode(self.maxdepth,nextboard, self, k)
 #                                except:
@@ -195,8 +194,8 @@ NodeList = []
     #                            if len(p.moves(MainBoard))!= 0:
         #                                for mv in p.moves(MainBoard):
         #                                    nextboard = Board(p.position, mv)
-    #                                    nextboard.CopyState(MainBoard)
-    #                                    nextboard.Occupier(p.position).MoveTo(nextboard, mv)
+    #                                    nextboard.copy_state(MainBoard)
+    #                                    nextboard.occupier(p.position).MoveTo(nextboard, mv)
     #                                    newnode = MiniMaxNode(self.maxdepth, nextboard, self, (self.depth + 1))
     #
     #                        t = threading.Thread(target=GenerateNodes())
@@ -218,21 +217,23 @@ NodeList = []
 #'#        #print("---------")
 #'#
 def Calculate(depth=1):
-
+    Update(MainBoard)
+    time.sleep(0.3)
     for i in range(depth):
         nextBoards = []
         for p in MainBoard.blackPieces:
             for mv in p.moves(MainBoard):
                 fakeboard = Board(p.position, mv)
-                fakeboard.CopyState(MainBoard)
-                fakeboard.Occupier(p.position).MoveTo(fakeboard,mv)
+                fakeboard.copy_state(MainBoard)
+                fakeboard.occupier(p.position).MoveTo(fakeboard,mv)
                 nextBoards.append([fakeboard,p.position,mv])
         for k in nextBoards:#
-            k[0].GetScore()
+            k[0].get_score()
 
         tmp = random.shuffle(nextBoards)
         sortedBoards = sorted(nextBoards, key=lambda x: x[0].score, reverse=False)
-        MainBoard.Occupier(sortedBoards[0][1]).MoveTo(MainBoard,sortedBoards[0][2])
+        MainBoard.occupier(sortedBoards[0][1]).MoveTo(MainBoard,sortedBoards[0][2])
+
         Update(MainBoard)
 
 
@@ -263,13 +264,13 @@ while not done:
                         if tuple(p.position) == tuple(selected_pos):
                             p.selected = False
                         elif p.position != selected_pos:
-                            if MainBoard.IsOccupied(selected_pos) and p.CanTake(selected_pos):
+                            if MainBoard.is_occupied(selected_pos) and p.CanTake(selected_pos):
                                 taken[0] = tuple(selected_pos)
                                 takes[0] = p
                                 ANYSELECTED = []
                                 p.selected = False
                             else:
-                                print("Score is " + str(MainBoard.GetScore()))
+                                print("Score is " + str(MainBoard.get_score()))
                                 p.MoveTo(MainBoard,selected_pos)
                                 p.selected = False
                                 ANYSELECTED = []
