@@ -297,7 +297,7 @@ while not done:
 
             try:
 
-                takes[0].try_take(taken[0])
+                takes[0].Take(taken[0])
 
 
             except:
