@@ -13,7 +13,7 @@ class Piece():
         self.coords = coordinates_to_board_position(self.position)
 
     def CanTake(self, pos):
-        for p in self.board.GetAllPieces():
+        for p in self.board.all_pieces():
             if tuple(p.position) == tuple(pos) and p.color != self.color:
                 if self.moves(self.board) != None:
                     if tuple(pos) in self.moves(self.board):

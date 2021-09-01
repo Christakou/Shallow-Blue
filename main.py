@@ -5,7 +5,7 @@ import numpy as np
 import random
 import threading
 from pieces import King,Queen,Rook,Bishop,Knight,Pawn
-from utils import KEYDICT, SCREENSIZE
+from utils import KEYDICT, SCREENSIZE, coordinates_to_board_position
 
 pygame.init()
 screen = pygame.display.set_mode(SCREENSIZE)
@@ -32,15 +32,15 @@ class Board():
         self.b = b
         self.move_count = 0
 
-    def GetAllPieces(self):
+    def all_pieces(self):
         return self.whitePieces + self.blackPieces
 
     def Length(self):
-        return len(self.GetAllPieces())
+        return len(self.all_pieces())
 
     def Represent(self):
         rep = np.zeros((8,8))
-        pieces = self.GetAllPieces()
+        pieces = self.all_pieces()
         for p in pieces:
             if p.color == "W":
                 rep[p.position[1]][p.position[0]] = p.value
@@ -57,7 +57,7 @@ class Board():
 
     def GetScore(self):
         rep = np.zeros((8, 8))
-        pieces = self.GetAllPieces()
+        pieces = self.all_pieces()
         for p in pieces:
             if p.color == "W":
                 rep[p.position[1]][p.position[0]] = p.value
@@ -74,7 +74,7 @@ class Board():
             self.blackPieces.append(copy.deepcopy(p))
 
     def IsOccupied(self,pos):
-        for p in self.GetAllPieces():
+        for p in self.all_pieces():
             if tuple(p.position) == tuple(pos):
                 return True
         else:
@@ -82,71 +82,54 @@ class Board():
 
 
     def Occupier(self,pos):
-        for p in self.GetAllPieces():
+        for p in self.all_pieces():
             if tuple(p.position) == tuple(pos):
                 return p
 
     def initialize(self):
         self.move_count = 0
-        King((4, 7), "W", MainBoard)
-        Queen((3, 7), "W", MainBoard)
-        Bishop((2, 7), "W", MainBoard)
-        Bishop((5, 7), "W", MainBoard)
-        Bishop((2, 0), "B", MainBoard)
-        Bishop((5, 0), "B", MainBoard)
-        Knight((6, 0), "B", MainBoard)
-        Knight((1, 0), "B", MainBoard)
-        Knight((1, 7), "W", MainBoard)
-        Knight((6, 7), "W", MainBoard)
-        Queen((3, 0), "B", MainBoard)
-        King((4, 0), "B", MainBoard)
-        Rook((0, 7), "W", MainBoard)
-        Rook((7, 7), "W", MainBoard)
-        Rook((0, 0), "B", MainBoard)
-        Rook((7, 0), "B", MainBoard)
+        King((4, 7), "W", self)
+        King((4, 0), "B", self)
+        Queen((3, 7), "W", self)
+        Queen((3, 0), "B", self)
+        Bishop((2, 7), "W", self)
+        Bishop((5, 7), "W", self)
+        Bishop((2, 0), "B", self)
+        Bishop((5, 0), "B", self)
+        Knight((1, 7), "W", self)
+        Knight((6, 7), "W", self)
+        Knight((6, 0), "B", self)
+        Knight((1, 0), "B", self)
+        Rook((0, 7), "W", self)
+        Rook((7, 7), "W", self)
+        Rook((0, 0), "B", self)
+        Rook((7, 0), "B", self)
         for a in range(8):
-            Pawn((a, 1), "B", MainBoard)
-            Pawn((a, 6), "W", MainBoard)
-        self.update()
-
-    def update(self):
-        screen.blit(boardimage, (0, 0))
-        suggestedmvs = []
-        for Piece in MainBoard.GetAllPieces():
-            Piece.coord = (Piece.position[0] * (SCREENSIZE[0] / 8.0), Piece.position[1] * (SCREENSIZE[1] / 8.0))
-            screen.blit(pygame.image.load('./assets/' + Piece.imagefile), Piece.coord)
-            if Piece.selected:
-                screen.blit(selected_image, Piece.coord)
-                if Piece.moves(MainBoard)!= None:
-                    for a in Piece.moves(MainBoard): suggestedmvs.append(a)
-        for legalmove in suggestedmvs:
-            screen.blit(legalmove_image, (legalmove[0] * (SCREENSIZE[0] / 8.0), legalmove[1] * (SCREENSIZE[1] / 8.0)))
+            Pawn((a, 1), "B", self)
+            Pawn((a, 6), "W", self)
 
 
-
-
-
-MainBoard = Board()
-MainBoard.initialize()
-NodeList = []
 
 
 
 def Update(Board):
-    MainBoard = Board
     screen.blit(boardimage, (0, 0))
     suggestedmvs = []
-    for Piece in MainBoard.GetAllPieces():
-        Piece.coord = (Piece.position[0] * (SCREENSIZE[0] / 8.0), Piece.position[1] * (SCREENSIZE[1] / 8.0))
+    for Piece in Board.all_pieces():
+        Piece.coord = coordinates_to_board_position(Piece.position)
         screen.blit(pygame.image.load('./assets/' + Piece.imagefile), Piece.coord)
         if Piece.selected:
             screen.blit(selected_image, Piece.coord)
-            if Piece.moves(MainBoard)!= None:
-                for a in Piece.moves(MainBoard): suggestedmvs.append(a)
+            if Piece.moves(Board)!= None:
+                for a in Piece.moves(Board): suggestedmvs.append(a)
     for legalmove in suggestedmvs:
         screen.blit(legalmove_image, (legalmove[0] * (SCREENSIZE[0] / 8.0), legalmove[1] * (SCREENSIZE[1] / 8.0)))
 
 
+MainBoard = Board()
+MainBoard.initialize()
+Update(MainBoard)
+NodeList = []
 
 
 
@@ -265,7 +248,7 @@ while not done:
             mousex, mousey = event.pos
             selected_pos = [int(math.floor((event.pos[0] * 8.0 / SCREENSIZE[0]))),
                             int(math.floor(event.pos[1] * 8.0 / SCREENSIZE[1]))]
-            for p in MainBoard.GetAllPieces():
+            for p in MainBoard.all_pieces():
                 if p.selected is True:
                     for mv in p.moves(MainBoard):
                         print(mv)
