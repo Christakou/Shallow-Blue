@@ -2,8 +2,8 @@ from utils import KEYDICT, coordinates_to_board_position, in_board
 import pygame
 
 class Piece():
-    def __init__(self, pos, color, board):
-        self.type = ''
+    def __init__(self, pos, color, board, type):
+        self.type = type
         self.position = pos
         self.color = color
         self.selected = False
@@ -11,7 +11,7 @@ class Piece():
         self.movelist = []
         self.board = board
         self.coords = coordinates_to_board_position(self.position)
-
+        self.image_path = "/" + str((self.color) + KEYDICT[self.type] + ".png")
     def __str__(self):
         return f'{self.color}{self.position}'
     def can_take(self, pos):
@@ -68,10 +68,8 @@ class Piece():
 
 class King(Piece):
 
-    def __init__(self, pos, color, board):
-        Piece.__init__(self, pos, color, board)
-        self.type = "ki"
-        self.image_path = "/" + str((self.color) + KEYDICT[self.type] + ".png")
+    def __init__(self, pos, color, board, type="ki"):
+        Piece.__init__(self, pos, color, board, type)
         self.value = 100000
         if self.color == "B" :
             self.board.blackPieces.append(self)
@@ -106,16 +104,14 @@ class King(Piece):
 
 class Queen(Piece):
 
-    def __init__(self, pos, color, board):
-        Piece.__init__(self, pos, color, board)
-        self.type = "q"
-        self.imagefile = "/" + str((self.color) + KEYDICT[self.type] + ".png")
+    def __init__(self, pos, color, board, type="q"):
+        Piece.__init__(self, pos, color, board, type)
         self.value = 9
         if self.color == "B":
             self.board.blackPieces.append(self)
         if self.color == "W":
             self.board.whitePieces.append(self)
-        pygame.image.load('./assets/' + self.imagefile)
+        pygame.image.load('./assets/' + self.image_path)
 
     def moves(self,board):
         x, y = self.position[0], self.position[1]
@@ -183,16 +179,14 @@ class Queen(Piece):
 
 class Rook(Piece):
 
-    def __init__(self, pos, color, board):
-        Piece.__init__(self, pos, color, board)
-        self.type = "r"
-        self.imagefile = "/" + str((self.color) + KEYDICT[self.type] + ".png")
+    def __init__(self, pos, color, board, type="r"):
+        Piece.__init__(self, pos, color, board,type=type)
         self.value = 5
         if self.color == "B":
             self.board.blackPieces.append(self)
         if self.color == "W":
             self.board.whitePieces.append(self)
-        pygame.image.load('./assets/' + self.imagefile)
+        pygame.image.load('./assets/' + self.image_path)
 
     def moves(self,board):
         x, y = self.position[0], self.position[1]
@@ -236,16 +230,14 @@ class Rook(Piece):
 
 class Bishop(Piece):
 
-    def __init__(self, pos, color, board):
-        Piece.__init__(self, pos, color, board)
-        self.type = "b"
-        self.imagefile = "/" + str((self.color) + KEYDICT[self.type] + ".png")
+    def __init__(self, pos, color, board, type="b"):
+        Piece.__init__(self, pos, color, board, type)
         self.value = 3
         if self.color == "B":
             self.board.blackPieces.append(self)
         if self.color == "W":
             self.board.whitePieces.append(self)
-        pygame.image.load('./assets/' + self.imagefile)
+        pygame.image.load('./assets/' + self.image_path)
 
     def moves(self,board):
         x, y = self.position[0], self.position[1]
@@ -291,16 +283,14 @@ class Bishop(Piece):
 
 class Knight(Piece):
 
-    def __init__(self, pos, color, board):
-        Piece.__init__(self, pos, color, board)
-        self.type = "kn"
-        self.imagefile = "/" + str((self.color) + KEYDICT[self.type] + ".png")
+    def __init__(self, pos, color, board, type="kn"):
+        Piece.__init__(self, pos, color, board, type=type)
         self.value = 3
         if self.color == "B":
             self.board.blackPieces.append(self)
         if self.color == "W":
             self.board.whitePieces.append(self)
-        pygame.image.load('./assets/' + self.imagefile)
+        pygame.image.load('./assets/' + self.image_path)
 
     def moves(self,board):
         x, y = self.position[0], self.position[1]
@@ -324,16 +314,14 @@ class Knight(Piece):
 
 class Pawn(Piece):
 
-    def __init__(self, pos, color, board):
-        Piece.__init__(self, pos, color, board)
-        self.type = "p"
-        self.imagefile = "/" + str((self.color) + KEYDICT[self.type] + ".png")
+    def __init__(self, pos, color, board, type="p"):
+        Piece.__init__(self, pos, color, board, type=type)
         self.value = 1
         if self.color == "B":
             self.board.blackPieces.append(self)
         if self.color == "W":
             self.board.whitePieces.append(self)
-        pygame.image.load('./assets/' + self.imagefile)
+        pygame.image.load('./assets/' + self.image_path)
 
     def moves(self,board):
         legalmoves = []
