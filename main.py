@@ -112,7 +112,19 @@ def get_board_parent_at_depth(board, depth):
         return board
     get_board_parent_at_depth(board.parent, depth-1)
 
-def Calculate(main_board, depth=1):
+def Calculate(main_board, depth):
+    '''
+    Should function as the main 'calculation' function of the minimax algorithm
+    Given black's turn to play:
+        We generate a tree of possible future boards with the desired depth
+
+    :param main_board:
+    :param depth:
+    :return:
+    '''
+
+
+def Calculate(main_board, depth=2):
     print('Calculating')
     print(f'board:move_count:{main_board.move_count}')
     nextBoards = [main_board]
@@ -137,6 +149,7 @@ def Calculate(main_board, depth=1):
                         fake_board.copy_state(board)
                         fake_board.occupier(piece.position).move_to(mv)
                         nextBoards.append(fake_board)
+
     tmp = random.shuffle(nextBoards)
     print([a.depth for a in nextBoards])
     final_boards = [board for board in nextBoards if board.depth == depth]

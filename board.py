@@ -9,7 +9,7 @@ class Board():
         self.score = 0
         self.move_count = 0
         self.depth = 0
-        self.child = None
+        self.children = []
         self.parent = None
         self.last_move = []
 
@@ -58,8 +58,8 @@ class Board():
             copied_piece.board = self
             self.blackPieces.append(copied_piece)
         self.move_count = int(board.move_count)
-        board.child = self
-        self.parent = board
+        board.children.append(self)
+        self.parent = boards
         self.depth += 1
 
 
