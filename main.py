@@ -150,16 +150,16 @@ def Calculate(main_board, depth=4):
             print(f'depth = {i}')
             if i % 2 == 0:
                 print('yo')
-                for piece in board.blackPieces[0:10]:
-                    for mv in piece.moves(board)[0:4]:
+                for piece in board.blackPieces:
+                    for mv in piece.moves(board):
                         fake_board = Board()
                         fake_board.copy_state(board)
                         fake_board.occupier(piece.position).move_to(mv)
                         next_boards.append(fake_board)
             elif i % 2 == 1:
                 print('yolo')
-                for piece in board.whitePieces[0:10]:
-                    for mv in piece.moves(board)[0:4]:
+                for piece in board.whitePieces:
+                    for mv in piece.moves(board):
                         fake_board = Board()
                         fake_board.copy_state(board)
                         fake_board.occupier(piece.position).move_to(mv)
