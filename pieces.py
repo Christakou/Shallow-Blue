@@ -27,12 +27,13 @@ class Piece():
         if self.moves(self.board) != None:
             if tuple(pos) in self.moves(self.board):
                 self.board.last_move = [self.position, pos]
-                if not self.board.is_occupied(pos):
+                if self.board.is_occupied(pos):
+                    self.take(pos)
+                else:
                     self.position = pos
                     self.board.move_count += 1
                     self.move_count += 1
-                else:
-                    self.take(pos)
+
                 
     def delete(self):
         try:
@@ -49,20 +50,12 @@ class Piece():
             print("Couldn't remove piece")
 
     def take(self, pos):
-        if self.board.is_occupied(pos):
-            if self.type == "p":
-                if self.can_take(pos):
-                    self.board.occupier(pos).delete()
-                    self.position = (pos)
-                    self.board.move_count += 1
-                    self.move_count += 1
-
-            else:
-                if self.can_take(pos):
-                    self.board.occupier(pos).delete()
-                    self.position = pos
-                    self.board.move_count += 1
-                    self.move_count += 1
+        print('taking')
+        if self.board.is_occupied(pos) and self.can_take(pos):
+            self.board.occupier(pos).delete()
+            self.position = pos
+            self.board.move_count += 1
+            self.move_count += 1
 
 
 

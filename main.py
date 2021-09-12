@@ -15,6 +15,7 @@ class GameManager():
         self._load_images()
         self.suggested_moves = []
         self.done = False
+        self.any_selected = []
 
     def _load_images(self):
         self.board_sprite = pygame.image.load("./assets/chessboard.png")
@@ -22,18 +23,68 @@ class GameManager():
         self.selected_sprite = pygame.image.load("./assets/Selected.png")
         self.legal_move_sprite = pygame.image.load("./assets/LegalMove.png")
 
-    def update_board(self):
+    def _blit_board(self):
         self.screen.blit(self.board_sprite, (0, 0))
+
+    def _blit_pieces(self):
         self.suggested_moves = []
         for piece in self.main_board.all_pieces():
             piece.coord = coordinates_to_board_position(piece.position)
             self.screen.blit(pygame.image.load('./assets/' + piece.image_path), piece.coord)
             if piece.selected:
                 self.screen.blit(self.selected_sprite, piece.coord)
-                if piece.moves(self.main_board)!= None:
-                    for a in piece.moves(self.main_board): self.suggested_moves.append(a)
+                if piece.moves(self.main_board) is not None:
+                    for a in piece.moves(self.main_board):
+                        self.suggested_moves.append(a)
+
+    def _blit_suggested_moves(self):
         for move in self.suggested_moves:
             self.screen.blit(self.legal_move_sprite, (move[0] * (SCREENSIZE[0] / 8.0), move[1] * (SCREENSIZE[1] / 8.0)))
+
+    def _event_quit_handler(self, event):
+        self.done = True
+
+    def _event_mousebuttondown_handler(self, event):
+        selected_pos = [int(math.floor((event.pos[0] * 8.0 / SCREENSIZE[0]))),
+                        int(math.floor(event.pos[1] * 8.0 / SCREENSIZE[1]))]
+        for p in self.main_board.all_pieces():
+            if p.selected is True:
+                self.any_selected.append(True)
+
+            else:
+                self.any_selected.append(False)
+
+            if any(self.any_selected):
+                if p.selected is True:
+                    if tuple(p.position) == tuple(selected_pos):
+                        p.selected = False
+                    elif p.position != selected_pos:
+                        if self.main_board.is_occupied(selected_pos) and p.can_take(selected_pos):
+                            taken = tuple(selected_pos)
+                            takes = p
+                            self.any_selected = []
+                            p.selected = False
+                        else:
+                            print("Score is " + str(self.main_board.get_score()))
+                            p.move_to(selected_pos)
+                            p.selected = False
+                            self.any_selected = []
+            else:
+                if tuple(p.position) == tuple(selected_pos):
+                    if self.main_board.move_count % 2 == 0 and p.color == "W":
+                        p.selected = True
+
+        try:
+            takes.take(taken)
+        except Exception as err:
+            print(err)
+
+
+    def update_board(self):
+            self._blit_board()
+            self._blit_pieces()
+            self._blit_suggested_moves()
+
 
     def event_loop(self):
         takes = [0]
@@ -42,45 +93,9 @@ class GameManager():
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                self.done = True
+                self._event_quit_handler(event)
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                selected_pos = [int(math.floor((event.pos[0] * 8.0 / SCREENSIZE[0]))),
-                                int(math.floor(event.pos[1] * 8.0 / SCREENSIZE[1]))]
-                for p in self.main_board.all_pieces():
-                    if p.selected is True:
-                        any_selected.append(True)
-
-                    else:
-                        any_selected.append(False)
-
-                    if any(any_selected):
-                        if p.selected is True:
-                            if tuple(p.position) == tuple(selected_pos):
-                                p.selected = False
-                            elif p.position != selected_pos:
-                                if self.main_board.is_occupied(selected_pos) and p.can_take(selected_pos):
-                                    taken[0] = tuple(selected_pos)
-                                    takes[0] = p
-                                    any_selected = []
-                                    p.selected = False
-                                else:
-                                    print("Score is " + str(self.main_board.get_score()))
-                                    p.move_to(selected_pos)
-                                    p.selected = False
-                                    any_selected = []
-                    else:
-                        if tuple(p.position) == tuple(selected_pos):
-                            if self.main_board.move_count % 2 == 0 and p.color == "W":
-                                p.selected = True
-
-                try:
-
-                    takes[0].Take(taken[0])
-
-
-                except:
-                    pass
-                #
+                self._event_mousebuttondown_handler(event)
                 self.update_board()
         if self.main_board.move_count % 2 == 1:
             Calculate(self.main_board)
