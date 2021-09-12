@@ -48,19 +48,20 @@ class Board():
         return rep.sum()
 
     def copy_state(self,board):
+        print('creating duplicate')
         self.clear()
         for p in board.whitePieces:
-            copied_piece = copy.deepcopy(p)
+            copied_piece = copy.copy(p)
             copied_piece.board = self
             self.whitePieces.append(copied_piece)
         for p in board.blackPieces:
-            copied_piece = copy.deepcopy(p)
+            copied_piece = copy.copy(p)
             copied_piece.board = self
             self.blackPieces.append(copied_piece)
         self.move_count = int(board.move_count)
         board.children.append(self)
-        self.parent = boards
-        self.depth += 1
+        self.parent = board
+        self.depth = board.depth+1
 
 
     def is_occupied(self,pos):

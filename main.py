@@ -1,3 +1,4 @@
+import numpy as np
 import pygame
 import math
 import random
@@ -112,53 +113,62 @@ def get_board_parent_at_depth(board, depth):
         return board
     get_board_parent_at_depth(board.parent, depth-1)
 
-def Calculate(main_board, depth):
-    '''
-    Should function as the main 'calculation' function of the minimax algorithm
-    Given black's turn to play:
-        We generate a tree of possible future boards with the desired depth
+def minimax(main_board, depth, alpha, beta, maximizing_player):
+    if depth == 0:
+        return main_board.score
+    if maximizing_player:
+        maxEval = -np.Inf
+        for child_board in main_board.children:
+            eval = minimax(child_board, depth -1, alpha, beta, False)
+            maxEval = max(maxEval,eval)
+            #alpha = max(alpha, eval)
+            #if beta <= alpha:
+            #    break
+        return maxEval
+    else:
+        minEval = np.inf
+        for child_board in main_board.children:
+            eval = minimax(child_board, depth-1, alpha, beta, True)
+            minEval = min(minEval, eval)
+            #beta = min(beta, eval)
+            #if beta <= alpha:
+            #    break
+        print(f'{minEval=}')
+        return minEval
 
-    :param main_board:
-    :param depth:
-    :return:
-    '''
 
-
-def Calculate(main_board, depth=2):
+def Calculate(main_board, depth=4):
     print('Calculating')
     print(f'board:move_count:{main_board.move_count}')
-    nextBoards = [main_board]
+    main_board.children = []
+    next_boards = [main_board]
     for i in range(0,depth):
-        relevant_board = [board for board in nextBoards if board.depth == i]
-        print([a.depth for a in relevant_board])
+        if i==3:
+            print('hey')
+        relevant_board = [board for board in next_boards if board.depth == i]
         for board in relevant_board:
             print(f'depth = {i}')
             if i % 2 == 0:
                 print('yo')
-                for piece in board.blackPieces:
-                    for mv in piece.moves(board):
+                for piece in board.blackPieces[0:10]:
+                    for mv in piece.moves(board)[0:4]:
                         fake_board = Board()
                         fake_board.copy_state(board)
                         fake_board.occupier(piece.position).move_to(mv)
-                        nextBoards.append(fake_board)
+                        next_boards.append(fake_board)
             elif i % 2 == 1:
                 print('yolo')
-                for piece in board.whitePieces:
-                    for mv in piece.moves(board):
+                for piece in board.whitePieces[0:10]:
+                    for mv in piece.moves(board)[0:4]:
                         fake_board = Board()
                         fake_board.copy_state(board)
                         fake_board.occupier(piece.position).move_to(mv)
-                        nextBoards.append(fake_board)
+                        next_boards.append(fake_board)
 
-    tmp = random.shuffle(nextBoards)
-    print([a.depth for a in nextBoards])
-    final_boards = [board for board in nextBoards if board.depth == depth]
-    sortedBoards = sorted(final_boards, key=lambda x: x.score, reverse=False)
-    next_board = get_board_parent_at_depth(sortedBoards[0],depth)
-    print(next_board.last_move)
-    print(len(next_board.all_pieces()))
-    main_board.occupier(next_board.last_move[0]).move_to(next_board.last_move[1])
-    GM.update_board()
+    print('test')
+
+    minimax(GM.main_board, 3, -np.inf, np.inf, False)
+    #GM.update_board()
 
 while not GM.done:
     GM.event_loop()

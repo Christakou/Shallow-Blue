@@ -92,7 +92,7 @@ class King(Piece):
             if not in_board(mv):
                 delmoves.append(mv)
         legalmoves = set(legalmoves) - set(delmoves)
-        return legalmoves
+        return list(legalmoves)
 
 
 class Queen(Piece):
@@ -167,7 +167,7 @@ class Queen(Piece):
                 delmoves.append(mv)
         legalmoves = set(legalmoves) - set(delmoves)
         self.movelist = legalmoves
-        return legalmoves
+        return list(legalmoves)
 
 
 class Rook(Piece):
@@ -218,7 +218,7 @@ class Rook(Piece):
                 delmoves.append(mv)
         legalmoves = set(legalmoves) - set(delmoves)
         self.movelist = legalmoves
-        return legalmoves
+        return list(legalmoves)
 
 
 class Bishop(Piece):
@@ -271,7 +271,7 @@ class Bishop(Piece):
 
         legalmoves = set(legalmoves) - set(delmoves)
         self.movelist = legalmoves
-        return legalmoves
+        return list(legalmoves)
 
 
 class Knight(Piece):
@@ -300,9 +300,9 @@ class Knight(Piece):
         for mv in legalmoves:
             if not in_board(mv):
                 delmoves1.append(mv)
-        moves = (set(legalmoves) - set(delmoves1))
-        self.movelist = moves
-        return moves
+        legalmoves = (set(legalmoves) - set(delmoves1))
+        self.movelist = legalmoves
+        return list(legalmoves)
 
 
 class Pawn(Piece):
@@ -347,6 +347,6 @@ class Pawn(Piece):
             if not in_board(mv):
                 delmoves.append(mv)
 
-        moves = (set(legalmoves) - set(delmoves))
-        self.movelist = moves
-        return moves
+        legal_moves = (set(legalmoves) - set(delmoves))
+        self.movelist = legal_moves
+        return list(legalmoves)
