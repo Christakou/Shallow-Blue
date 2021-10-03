@@ -4,7 +4,7 @@ import math
 import random
 from utils import KEYDICT, SCREENSIZE, coordinates_to_board_position
 from board import Board
-
+import concurrent.futures
 
 
 class GameManager():
@@ -34,8 +34,8 @@ class GameManager():
             self.screen.blit(pygame.image.load('./assets/' + piece.image_path), piece.coord)
             if piece.selected:
                 self.screen.blit(self.selected_sprite, piece.coord)
-                if piece.moves(self.main_board) is not None:
-                    for a in piece.moves(self.main_board):
+                if piece.moves() is not None:
+                    for a in piece.moves():
                         self.suggested_moves.append(a)
 
     def _blit_suggested_moves(self):
@@ -113,26 +113,30 @@ def get_board_parent_at_depth(board, depth):
         return board
     get_board_parent_at_depth(board.parent, depth-1)
 
-def minimax(main_board, depth, alpha, beta, maximizing_player):
+def minimax(position, depth, alpha, beta, maximizing_player):
     if depth == 0:
-        return main_board.score
+        return position.get_score()
     if maximizing_player:
         maxEval = -np.Inf
-        for child_board in main_board.children:
+        for child_board in position.children:
             eval = minimax(child_board, depth -1, alpha, beta, False)
             maxEval = max(maxEval,eval)
-            #alpha = max(alpha, eval)
-            #if beta <= alpha:
-            #    break
+            print(f'{maxEval=} {eval=} {depth=}')
+            alpha = max(alpha, eval)
+            if beta <= alpha:
+               break
+        print(f'{maxEval=}')
         return maxEval
     else:
         minEval = np.inf
-        for child_board in main_board.children:
+        for child_board in position.children:
             eval = minimax(child_board, depth-1, alpha, beta, True)
             minEval = min(minEval, eval)
-            #beta = min(beta, eval)
-            #if beta <= alpha:
-            #    break
+            print(f'{minEval=} {eval=} {depth=}')
+            beta = min(beta, eval)
+            print(f'{alpha=} {beta=}')
+            if beta <= alpha:
+               break
         print(f'{minEval=}')
         return minEval
 
@@ -141,34 +145,47 @@ def Calculate(main_board, depth=4):
     print('Calculating')
     print(f'board:move_count:{main_board.move_count}')
     main_board.children = []
-    next_boards = [main_board]
+    next_boards = [main_board] # TODO: Change order so we're iterating first on boards, then pieces and finally depth
+                            # this way we can use minmax to prune on board generation as well
     for i in range(0,depth):
         if i==3:
             print('hey')
         relevant_board = [board for board in next_boards if board.depth == i]
         for board in relevant_board:
-            print(f'depth = {i}')
+            print(f'Generating position tree at depth = {i}')
             if i % 2 == 0:
-                print('yo')
-                for piece in board.blackPieces:
-                    for mv in piece.moves(board):
-                        fake_board = Board()
-                        fake_board.copy_state(board)
-                        fake_board.occupier(piece.position).move_to(mv)
-                        next_boards.append(fake_board)
+                for piece in board.blackPieces[:5]:
+                    move_list = piece.moves()
+                    random.shuffle(move_list)
+                    with  concurrent.futures.ProcessPoolExecutor() as executor:
+                        def create_board(mv):
+                            fake_board = Board()
+                            fake_board.copy_state(board)
+                            fake_board.occupier(piece.position).move_to(mv)
+                            next_boards.append(fake_board)
+                        for mv in move_list[:2]:
+                            executor.submit(create_board(mv))
+
             elif i % 2 == 1:
-                print('yolo')
-                for piece in board.whitePieces:
-                    for mv in piece.moves(board):
-                        fake_board = Board()
-                        fake_board.copy_state(board)
-                        fake_board.occupier(piece.position).move_to(mv)
-                        next_boards.append(fake_board)
+                for piece in board.whitePieces[:5]:
+                    move_list = piece.moves()
+                    random.shuffle(move_list)
+                    with  concurrent.futures.ProcessPoolExecutor() as executor:
+                        def create_board(mv):
+                            fake_board = Board()
+                            fake_board.copy_state(board)
+                            fake_board.occupier(piece.position).move_to(mv)
+                            next_boards.append(fake_board)
 
-    print('test')
+                        for mv in move_list[:2]:
+                            executor.submit(create_board(mv))
 
-    minimax(GM.main_board, 3, -np.inf, np.inf, False)
-    #GM.update_board()
+    best_board = sorted(GM.main_board.children, key=lambda board:minimax(board, 3, -np.inf, np.inf, True))[0]
+    print(best_board)
+    print(minimax(best_board, 2, -np.inf, np.inf, False))
 
+    GM.main_board.occupier(best_board.last_move[0]).move_to(best_board.last_move[1])
+    print('moved?')
+    GM.update_board()
 while not GM.done:
     GM.event_loop()

@@ -2,11 +2,11 @@ from pieces import King,Queen,Rook,Bishop,Knight,Pawn
 import numpy as np
 import copy
 
+
 class Board():
     def __init__(self):
         self.whitePieces = []
         self.blackPieces = []
-        self.score = 0
         self.move_count = 0
         self.depth = 0
         self.children = []
@@ -16,6 +16,11 @@ class Board():
     def all_pieces(self):
         return self.whitePieces + self.blackPieces
 
+    def remove_piece(self, piece):
+        if piece.color == 'W':
+            self.whitePieces.remove(piece)
+        if piece.color == 'B':
+            self.blackPieces.remove(piece)
 
     def __str__(self):
         np.set_printoptions(precision=1)
@@ -48,7 +53,6 @@ class Board():
         return rep.sum()
 
     def copy_state(self,board):
-        print('creating duplicate')
         self.clear()
         for p in board.whitePieces:
             copied_piece = copy.copy(p)

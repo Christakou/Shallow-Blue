@@ -1,6 +1,6 @@
 from utils import KEYDICT, coordinates_to_board_position, in_board
 import pygame
-
+from functools import cached_property
 class Piece():
     def __init__(self, pos, color, board, type):
         self.type = type
@@ -17,15 +17,17 @@ class Piece():
     def can_take(self, pos):
         for p in self.board.all_pieces():
             if tuple(p.position) == tuple(pos) and p.color != self.color:
-                if self.moves(self.board) != None:
-                    if tuple(pos) in self.moves(self.board):
+                if self.moves() != None:
+                    if tuple(pos) in self.moves():
                         return True
-    def moves(self, board):
+
+
+    def moves(self):
         pass
 
     def move_to(self, pos):
-        if self.moves(self.board) != None:
-            if tuple(pos) in self.moves(self.board):
+        if self.moves() != None:
+            if tuple(pos) in self.moves():
                 self.board.last_move = [self.position, pos]
                 if self.board.is_occupied(pos):
                     self.take(pos)
@@ -36,18 +38,7 @@ class Piece():
 
                 
     def delete(self):
-        try:
-            self.board.whitePieces.remove(self)
-        except:
-            print("Couldn't remove white piece")
-        try:
-            self.board.blackPieces.remove(self)
-        except:
-            print("Couldn't remove black piece")
-        try:
-            self.board.allPieces.remove(self)
-        except:
-            print("Couldn't remove piece")
+        self.board.remove_piece(self)
 
     def take(self, pos):
         print('taking')
@@ -70,7 +61,7 @@ class King(Piece):
             self.board.whitePieces.append(self)
         pygame.image.load('./assets/' + self.image_path)
 
-    def moves(self,board):
+    def moves(self):
         x, y = self.position[0], self.position[1]
         legalmoves = []
         delmoves = []
@@ -106,61 +97,62 @@ class Queen(Piece):
             self.board.whitePieces.append(self)
         pygame.image.load('./assets/' + self.image_path)
 
-    def moves(self,board):
+    
+    def moves(self):
         x, y = self.position[0], self.position[1]
         legalmoves = []
         delmoves = []
         for i in range(1, 8):
             legalmoves.append((x + i, y + i))
-            if board.is_occupied((x + i, y + i)):
+            if self.board.is_occupied((x + i, y + i)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x + i, y - i))
-            if board.is_occupied((x + i, y - i)):
+            if self.board.is_occupied((x + i, y - i)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x - i, y - i))
-            if board.is_occupied((x - i, y - i)):
+            if self.board.is_occupied((x - i, y - i)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x - i, y + i))
-            if board.is_occupied((x - i, y + i)):
+            if self.board.is_occupied((x - i, y + i)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x + i, y))
-            if board.is_occupied((x + i, y)):
+            if self.board.is_occupied((x + i, y)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x - i, y))
-            if board.is_occupied((x - i, y)):
+            if self.board.is_occupied((x - i, y)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x, y + i))
-            if board.is_occupied((x, y + i)):
+            if self.board.is_occupied((x, y + i)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x, y - i))
-            if board.is_occupied((x, y - i)):
+            if self.board.is_occupied((x, y - i)):
                 break
             else:
                 pass
         for mv in legalmoves:
-            if board.is_occupied(mv):
-                if board.occupier(mv).color == self.color:
+            if self.board.is_occupied(mv):
+                if self.board.occupier(mv).color == self.color:
                     delmoves.append(mv)
         for mv in legalmoves:
             if not in_board(mv):
@@ -181,37 +173,38 @@ class Rook(Piece):
             self.board.whitePieces.append(self)
         pygame.image.load('./assets/' + self.image_path)
 
-    def moves(self,board):
+    
+    def moves(self):
         x, y = self.position[0], self.position[1]
         legalmoves = []
         delmoves = []
         for i in range(1, 8):
             legalmoves.append((x + i, y))
-            if board.is_occupied((x + i, y)):
+            if self.board.is_occupied((x + i, y)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x - i, y))
-            if board.is_occupied((x - i, y)):
+            if self.board.is_occupied((x - i, y)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x, y + i))
-            if board.is_occupied((x, y + i)):
+            if self.board.is_occupied((x, y + i)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x, y - i))
-            if board.is_occupied((x, y - i)):
+            if self.board.is_occupied((x, y - i)):
                 break
             else:
                 pass
         for mv in legalmoves:
-            if board.is_occupied(mv):
-                if board.occupier(mv).color == self.color:
+            if self.board.is_occupied(mv):
+                if self.board.occupier(mv).color == self.color:
                     delmoves.append(mv)
         for mv in legalmoves:
             if not in_board(mv):
@@ -232,38 +225,39 @@ class Bishop(Piece):
             self.board.whitePieces.append(self)
         pygame.image.load('./assets/' + self.image_path)
 
-    def moves(self,board):
+    
+    def moves(self):
         x, y = self.position[0], self.position[1]
         legalmoves = []
         delmoves = []
         for i in range(1, 8):
             legalmoves.append((x + i, y + i))
-            if board.is_occupied((x + i, y + i)):
+            if self.board.is_occupied((x + i, y + i)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x + i, y - i))
-            if board.is_occupied((x + i, y - i)):
+            if self.board.is_occupied((x + i, y - i)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x - i, y - i))
-            if board.is_occupied((x - i, y - i)):
+            if self.board.is_occupied((x - i, y - i)):
                 break
             else:
                 pass
         for i in range(1, 8):
             legalmoves.append((x - i, y + i))
-            if board.is_occupied((x - i, y + i)):
+            if self.board.is_occupied((x - i, y + i)):
                 break
             else:
                 pass
 
         for mv in legalmoves:
-            if board.is_occupied((mv)):
-                if board.occupier(mv).color == self.color:
+            if self.board.is_occupied((mv)):
+                if self.board.occupier(mv).color == self.color:
                     delmoves.append(mv)
         for mv in legalmoves:
             if not in_board(mv):
@@ -285,7 +279,8 @@ class Knight(Piece):
             self.board.whitePieces.append(self)
         pygame.image.load('./assets/' + self.image_path)
 
-    def moves(self,board):
+
+    def moves(self):
         x, y = self.position[0], self.position[1]
         legalmoves = [(x + 2, y + 1), (x - 2, y + 1), (x + 1, y + 2), (x - 1, y + 2), (x + 1, y - 2), (x - 1, y - 2),
                       (x - 2, y - 1), (x + 2, y - 1)]
@@ -294,8 +289,8 @@ class Knight(Piece):
             if (mv[0] > 7) or (mv[0] < 0) or (mv[1] > 7) or (mv[1] < 0):
                 delmoves1.append(mv)
         for mv in legalmoves:
-            if board.is_occupied((mv)):
-                if board.occupier(mv).color == self.color:
+            if self.board.is_occupied((mv)):
+                if self.board.occupier(mv).color == self.color:
                     delmoves1.append(mv)
         for mv in legalmoves:
             if not in_board(mv):
@@ -316,22 +311,26 @@ class Pawn(Piece):
             self.board.whitePieces.append(self)
         pygame.image.load('./assets/' + self.image_path)
 
-    def moves(self,board):
+    def moves(self):
         legalmoves = []
         delmoves = []
         x, y = self.position[0], self.position[1]
         if self.color == "B":
-            if self.move_count == 0 and (board.is_occupied((x, y + 1)) == False):
+            if self.move_count == 0 and (self.board.is_occupied((x, y + 1)) == False):
                 legalmoves.append((x, y + 2))
             legalmoves.append((x, y + 1))
-            legalmoves.append((x + 1, y + 1))
-            legalmoves.append((x - 1, y + 1))
+            if self.board.is_occupied((x+1,y+1)) and self.board.occupier((x+1,y+1)).color =='W':
+                legalmoves.append((x + 1, y + 1))
+            if self.board.is_occupied((x-1,y+1)) and self.board.occupier((x-1,y+1)).color =='W':
+                legalmoves.append((x - 1, y + 1))
         if self.color == "W":
-            if self.move_count == 0 and (board.is_occupied((x, y - 1)) == False):
+            if self.move_count == 0 and (self.board.is_occupied((x, y - 1)) == False):
                 legalmoves.append((x, y - 2))
             legalmoves.append((x, y - 1))
-            legalmoves.append((x + 1, y - 1))
-            legalmoves.append((x - 1, y - 1))
+            if self.board.is_occupied((x+1,y-1)) and self.board.occupier((x+1,y-1)).color =='B':
+                legalmoves.append((x + 1, y - 1))
+            if self.board.is_occupied((x-1,y-1)) and self.board.occupier((x-1,y-1)).color =='B':
+                legalmoves.append((x - 1, y - 1))
 
         for mv in legalmoves:
             if mv != None:
