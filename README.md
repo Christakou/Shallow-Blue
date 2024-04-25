@@ -3,7 +3,7 @@
 A fully working chess-game made in Python ([PyGame](https://www.pygame.org/wiki/GettingStarted)) using the [MinMax algorithm](https://en.wikipedia.org/wiki/Minimax) and Alpha-Beta prunning to reduce the search space of possible moves.
 
 ## Introduction
-This project aims at creating a playable chess game, by both fully implementing the board environment in PyGame, but also the computer-based agent to play against.
+This project aims at creating a playable chess game, by both fully implementing the board environment in PyGame, but also the AI agent to play against.
 
 The value function implemented currently is very simplistic and only looks at how many pieces are of each colour and sums their respective value.
 
